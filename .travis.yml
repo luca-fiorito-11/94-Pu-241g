@@ -14,9 +14,6 @@ env:
 python:
   - "3.6"
 
-before_install:
-  - pip install "pandas>=0.23"
-
 cache:
   directories:
     - ${CACHEDIR}
@@ -58,8 +55,14 @@ jobs:
 
     - stage: utils
       name: fizcon
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gfortran-5
       install: bash ${UTILS}/install_fizcon.sh
-      script: echo -e "$FILENAME\nFIZCON.OUT\n\nDONE" |./fizcon-linux-64
+      script: echo -e "$FILENAME\nFIZCON.OUT\n\nDONE" |./fizcon
 
     - stage: utils
       name: checkr
@@ -91,6 +94,7 @@ jobs:
 
     - stage: inter
       name: inter
+      before_install: pip install "pandas>=0.23"
       install: bash ${UTILS}/install_inter.sh
       script: 
         - echo -e "${CACHEDIR}/${FILENAME}.pendf\nINTER.OUT\n\nDONE" | ./inter-linux-64
@@ -103,7 +107,8 @@ jobs:
       deploy:
 
         - provider: releases
-          if: tag IS present
+          on:
+            tags: true
           api-key: $GITHUB_TOKEN
           file:
             - ${CACHEDIR}/${FILENAME}.ace 
